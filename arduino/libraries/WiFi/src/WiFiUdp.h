@@ -26,6 +26,7 @@ class WiFiUDP /*: public UDP*/ {
 
 public:
   WiFiUDP();
+  virtual uint8_t begin();
   virtual uint8_t begin(uint16_t);
   virtual uint8_t beginMulticast(/*IPAddress*/uint32_t, uint16_t);
   virtual void stop();

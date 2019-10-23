@@ -22,6 +22,7 @@
 extern "C" {
   #include <driver/periph_ctrl.h>
   #include <driver/uart.h>
+  #include <driver/adc.h>
   #include <esp_bt.h>
 }
 
@@ -84,6 +85,7 @@ void setDebug(int d) {
 void setupWiFi();
 void setupBluetooth();
 
+void setupADC();
 void setup() {
   setDebug(debug);
 
@@ -101,6 +103,7 @@ void setup() {
 
     setupWiFi();
   }
+  setupADC();
 }
 
 #define UNO_WIFI_REV2
@@ -178,3 +181,13 @@ void loop() {
     dumpBuffer("RESPONSE", responseBuffer, responseLength);
   }
 }
+
+void setupADC(){
+  uint8_t channels[] = {ADC_CHANNEL_0, ADC_CHANNEL_3, ADC_CHANNEL_4, ADC_CHANNEL_5, ADC_CHANNEL_6, ADC_CHANNEL_7};
+  adc1_config_width(ADC_WIDTH_BIT_12);
+  for(uint8_t i=0; i<sizeof(channels); ++i)
+  {
+    adc1_config_channel_atten((adc1_channel_t)channels[i], ADC_ATTEN_DB_0);
+  }
+}
+

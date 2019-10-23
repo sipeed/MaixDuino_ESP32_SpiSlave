@@ -35,9 +35,21 @@ WiFiUDP::WiFiUDP() :
 {
 }
 
+uint8_t WiFiUDP::begin()
+{
+  if(_socket <0)
+    _socket = lwip_socket(AF_INET, SOCK_DGRAM, 0);
+
+  if (_socket < 0) {
+    return 0;
+  }
+  return 1;
+}
+
 uint8_t WiFiUDP::begin(uint16_t port)
 {
-  _socket = lwip_socket(AF_INET, SOCK_DGRAM, 0);
+  if(_socket <0)
+    _socket = lwip_socket(AF_INET, SOCK_DGRAM, 0);
 
   if (_socket < 0) {
     return 0;

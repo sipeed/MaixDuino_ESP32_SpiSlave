@@ -23,6 +23,9 @@
 #include <WiFiSSLClient.h>
 #include <WiFiUdp.h>
 #include "esp_wpa2.h"
+extern "C" {
+  #include <driver/adc.h>
+}
 
 #include "CommandHandler.h"
 
@@ -578,10 +581,13 @@ int startClientTcp(const uint8_t command[], uint8_t response[])
   } else if (type == 0x01) {
     int result;
 
-    if (host[0] != '\0') {
-      result = udps[socket].beginPacket(host, port);
-    } else {
-      result = udps[socket].beginPacket(ip, port);
+    result = udps[socket].begin();
+    if(result){
+      if (host[0] != '\0') {
+        result = udps[socket].beginPacket(host, port);
+      } else {
+        result = udps[socket].beginPacket(ip, port);
+      }
     }
 
     if (result) {
@@ -779,7 +785,7 @@ int sendUDPdata(const uint8_t command[], uint8_t response[])
 int getRemoteData(const uint8_t command[], uint8_t response[])
 {
   uint8_t socket = command[4];
-
+  
   /*IPAddress*/uint32_t ip = /*IPAddress(0, 0, 0, 0)*/0;
   uint16_t port = 0;
 
@@ -1093,6 +1099,30 @@ int setCertKey(const uint8_t command[], uint8_t response[]){
   return 6;
 }
 
+
+int getAdcValue(const uint8_t command[], uint8_t response[]){
+  uint8_t len = command[3];
+  uint8_t j = 0;
+  int v;
+
+  response[2] = len;
+  for(int i=0; i<len; ++i){
+    response[3+j] = 3;
+    v = adc1_get_raw( (adc1_channel_t)command[4+i] );
+    response[4+j] = command[4+i];
+    response[5+j] = (uint8_t)(v >> 8 & 0xff);
+    response[6+j] = (uint8_t)(v & 0xff);
+    j += 4;
+  }
+  return len*4+4;
+}
+
+int softReset(const uint8_t command[], uint8_t response[]){
+  esp_restart();
+  response[2] = 0;
+  return 4;
+}
+
 typedef int (*CommandHandlerType)(const uint8_t command[], uint8_t response[]);
 
 const CommandHandlerType commandHandlers[] = {
@@ -1112,7 +1142,7 @@ const CommandHandlerType commandHandlers[] = {
   setClientCert, setCertKey, NULL, NULL, sendDataTcp, getDataBufTcp, insertDataBuf, NULL, NULL, NULL, wpa2EntSetIdentity, wpa2EntSetUsername, wpa2EntSetPassword, wpa2EntSetCACert, wpa2EntSetCertKey, wpa2EntEnable,
 
   // 0x50 -> 0x5f
-  setPinMode, setDigitalWrite, setAnalogWrite,
+  setPinMode, setDigitalWrite, setAnalogWrite, getAdcValue, softReset,
 };
 
 #define NUM_COMMAND_HANDLERS (sizeof(commandHandlers) / sizeof(commandHandlers[0]))
