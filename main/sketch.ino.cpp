@@ -187,7 +187,7 @@ void setupADC(){
   adc1_config_width(ADC_WIDTH_BIT_12);
   for(uint8_t i=0; i<sizeof(channels); ++i)
   {
-    adc1_config_channel_atten((adc1_channel_t)channels[i], ADC_ATTEN_DB_0);
+    adc1_config_channel_atten((adc1_channel_t)channels[i], ADC_ATTEN_DB_11);
   }
 }
 
